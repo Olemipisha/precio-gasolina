@@ -9,6 +9,11 @@ on:
     - cron: '0 10 * * *'  # 10:00 UTC (España invierno = 11:00)
 
 env:
+  TZ: Europe/Madrid
+  GASOLINA_CHAT_ID: ${{ secrets.GASOLINA_CHAT_ID }}
+  DIESEL_CHAT_ID: ${{ secrets.DIESEL_CHAT_ID }}
+  TOKEN_TELEGRAM: ${{ secrets.TOKEN_TELEGRAM }}
+  FUEL_STATION_ID: 4166
   GASOLINA_CHAT_ID: ${{ secrets.GASOLINA_CHAT_ID }}
   DIESEL_CHAT_ID: ${{ secrets.DIESEL_CHAT_ID }}
   TOKEN_TELEGRAM: ${{ secrets.TOKEN_TELEGRAM }}
