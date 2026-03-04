@@ -3,7 +3,8 @@ name: Descarga precio de hoy
 on:
   workflow_dispatch:
   schedule:
-    - cron: 0 11 * * *
+    - cron: '0 9 * * *'
+    - cron: '0 10 * * *'
 
 env:
   GASOLINA_CHAT_ID: ${{ secrets.GASOLINA_CHAT_ID }}
@@ -14,20 +15,40 @@ env:
 jobs:
   downloadStatus:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js version 16.x
-      uses: actions/setup-node@v1
-      with:
-        node-version: 16.x
-    - run: npm install
-    - run: npm run download-today
-    - name: Add prices
-      id: auto-commit-action
-      uses: stefanzweifel/git-auto-commit-action@v4
-      with:
-        commit_message: 'Add report for today'
-    - name: "Send to telegram if changes have been detected"
-      if: steps.auto-commit-action.outputs.changes_detected == 'true'
-      run: npm run send
+      - name: Solo ejecutar a las 11:00 (Europe/Madrid) o manual
+        id: madrid_time
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "run=true" >> $GITHUB_OUTPUT
+          elif [ "$(TZ=Europe/Madrid date +%H:%M)" = "11:00" ]; then
+            echo "run=true" >> $GITHUB_OUTPUT
+          else
+            echo "run=false" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: actions/checkout@v2
+        if: steps.madrid_time.outputs.run == 'true'
+
+      - name: Use Node.js version 16.x
+        if: steps.madrid_time.outputs.run == 'true'
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - run: npm install
+        if: steps.madrid_time.outputs.run == 'true'
+
+      - run: npm run download-today
+        if: steps.madrid_time.outputs.run == 'true'
+
+      - name: Add prices
+        id: auto-commit-action
+        if: steps.madrid_time.outputs.run == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: 'Add report for today'
+
+      - name: "Send to telegram if changes have been detected"
+        if: steps.madrid_time.outputs.run == 'true' && steps.auto-commit-action.outputs.changes_detected == 'true'
+        run: npm run send
