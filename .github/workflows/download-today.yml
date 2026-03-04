@@ -1,4 +1,4 @@
-name: Descarga precio de hoy
+name: Precios gasolina
 
 on:
   workflow_dispatch:
